@@ -1,0 +1,29 @@
+# Ignore everything by default
+*
+
+# Allow server folder and its contents
+!server/
+!server/** 
+!server/Dockerfile
+
+# Ignore node_modules inside server
+server/node_modules/
+server/node_modules/**
+
+# Ignore txt files
+*.txt
+
+# Ignore client folder completely
+client/
+client/**
+
+# Ignore Redis local volume folder
+redis_data/
+redis_data/**
+
+# Allow docker-compose.yml in root
+!docker-compose.yml
+
+# Allow git essentials
+!.gitignore
+!README.md

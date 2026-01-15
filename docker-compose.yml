@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    container_name: redis-server
+    ports:
+      - "6379:6379" # local testing, production mein optional
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"] # persistent data
+    networks:
+      - app-network
+
+  backend:
+    build: ./server # Dockerfile path
+    container_name: backend-app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    ports:
+      - "3000:3000" # backend port
+
+volumes:
+  redis_data:
+
+networks:
+  app-network:
