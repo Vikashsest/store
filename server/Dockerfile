@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Step 7: Start backend
-CMD ["node", "index.js"]
+CMD ["node", "app.js"]
