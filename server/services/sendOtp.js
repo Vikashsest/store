@@ -1,0 +1,40 @@
+import Otp from "../models/otpModel.js";
+import nodemailer from "nodemailer";
+
+// EMAIL_USER=
+// EMAIL_PASS=jnrb mmff wmdy kwmn
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "viku81021@gmail.com",
+    pass: "jnrb mmff wmdy kwmn",
+  },
+});
+export async function sendOtp(email) {
+  try {
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+
+    await Otp.findOneAndUpdate(
+      { email },
+      { otp, createdAt: new Date() },
+      { upsert: true, new: true }
+    );
+
+    await transporter.sendMail({
+      from: `Verfiy email <viku81021@gmail.com>`,
+      to: email,
+      subject: "Your OTP for Email Verification",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP is valid for 5 minutes.</p>
+      `,
+    });
+    return true;
+  } catch (error) {
+    console.error("OTP send error:", error);
+
+    throw new Error("Failed to send OTP");
+  }
+}
