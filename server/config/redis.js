@@ -1,10 +1,7 @@
 import { createClient } from "redis";
 
 const redisClient = createClient({
-  socket: {
-    host: "redis", // 👈 docker-compose service name
-    port: 6379,
-  },
+  url: process.env.REDIS_URL,
 });
 
 redisClient.on("connect", () => {
