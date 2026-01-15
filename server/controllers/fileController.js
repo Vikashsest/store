@@ -12,7 +12,6 @@ export const uploadFile = async (req, res, next) => {
       userId: req.user._id,
     });
 
-    // Check if parent directory exists
     if (!parentDirData) {
       return res.status(404).json({ error: "Parent directory not found!" });
     }

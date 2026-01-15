@@ -3,11 +3,20 @@ import nodemailer from "nodemailer";
 
 // EMAIL_USER=
 // EMAIL_PASS=jnrb mmff wmdy kwmn
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: "viku81021@gmail.com",
+//     pass: "jnrb mmff wmdy kwmn",
+//   },
+// });
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: "viku81021@gmail.com",
-    pass: "jnrb mmff wmdy kwmn",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 export async function sendOtp(email) {
