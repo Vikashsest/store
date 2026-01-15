@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 export async function connectDB() {
   try {
     await mongoose.connect(
-      "mongodb+srv://ePanchayat:fL7T3AL5ICSV4679@cluster0.5pa4vna.mongodb.net/Epanchyat"
+      "mongodb+srv://ePanchayat:fL7T3AL5ICSV4679@cluster0.5pa4vna.mongodb.net/storeAPP"
     );
 
     console.log("Database connected");
