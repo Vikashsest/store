@@ -14,7 +14,7 @@ app.use(cookieParser("mystoredrive"));
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["https://storedrive.vercel.app", "http://localhost:3000"],
     credentials: true,
   })
 );

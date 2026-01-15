@@ -1,13 +1,21 @@
 import { createClient } from "redis";
 
-// const redisClient = await createClient().connect();
 const redisClient = createClient({
   socket: {
-    host: "red-d4fdnk4hg0os738u5jn0.onrender.com",
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+    host: "redis", // 👈 docker-compose service name
+    port: 6379,
   },
-  password: process.env.REDIS_PASSWORD || undefined,
+});
+
+redisClient.on("connect", () => {
+  console.log("✅ Redis connected");
+});
+
+redisClient.on("error", (err) => {
+  console.error("❌ Redis error:", err);
+  process.exit(1);
 });
 
 await redisClient.connect();
+
 export default redisClient;

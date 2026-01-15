@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 export async function connectDB() {
   try {
     await mongoose.connect(
-      // "mongodb://anurag:anurag123@localhost:27017/storageApp"
       "mongodb+srv://ePanchayat:fL7T3AL5ICSV4679@cluster0.5pa4vna.mongodb.net/Epanchyat"
     );
 
