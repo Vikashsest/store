@@ -83,23 +83,25 @@ export const mySecretKey = "mystoredrive$#@#$";
 
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
-
   try {
-    // 1️⃣ Check existing user
+    // 1️⃣ Check duplicate email
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({
-        error: "Email already exists",
-      });
-    }
+    if (existingUser) return res.status(409).json({ error: "Email exists" });
 
     // 2️⃣ Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 3️⃣ Create user & root directory
     const userId = new Types.ObjectId();
     const rootDirId = new Types.ObjectId();
 
-    // 3️⃣ Create user (not verified)
+    await Directory.insertOne({
+      _id: rootDirId,
+      name: `root-${email}`,
+      parentDirId: null,
+      userId,
+    });
+
     await User.insertOne({
       _id: userId,
       name,
@@ -109,30 +111,10 @@ export const register = async (req, res, next) => {
       isVerified: false,
     });
 
-    // 4️⃣ Create root directory
-    await Directory.insertOne({
-      _id: rootDirId,
-      name: `root-${email}`,
-      parentDirId: null,
-      userId,
-    });
+    // 4️⃣ Send OTP
+    await sendOtp(email);
 
-    // 5️⃣ Generate & save OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    await Otp.insertOne({
-      userId,
-      otp: await bcrypt.hash(otp.toString(), 10),
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
-    });
-
-    // 6️⃣ Send OTP (Resend)
-    await sendOtp(email, otp);
-
-    res.status(200).json({
-      success: true,
-      message: "OTP sent to your email",
-    });
+    res.status(200).json({ success: true, message: "OTP sent to your email" });
   } catch (err) {
     next(err);
   }

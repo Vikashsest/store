@@ -19,13 +19,14 @@ import Otp from "../models/otpModel.js";
 //     pass: process.env.EMAIL_PASS,
 //   },
 // });
+
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtp(email) {
   try {
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     await Otp.findOneAndUpdate(
       { email },
