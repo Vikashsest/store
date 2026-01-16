@@ -9,75 +9,132 @@ import Otp from "../models/otpModel.js";
 import redisClient from "../config/redis.js";
 
 export const mySecretKey = "mystoredrive$#@#$";
+// export const register = async (req, res, next) => {
+//   const { name, email, password } = req.body;
+//   const hashedPassword = await bcrypt.hash(password, 10);
+//   // const session = await mongoose.startSession();
+
+//   // const salt = crypto.randomBytes(16);
+//   // const hashedPassword = crypto.pbkdf2Sync(
+//   //   password,
+//   //   salt,
+//   //   100000,
+//   //   32,
+//   //   "sha256"
+//   // );
+
+//   //withou bcrypt hash our password
+//   // const hashedPassword = crypto
+//   //   .createHash("sha256")
+//   //   .update(password)
+//   //   .digest("hex");
+//   try {
+//     const rootDirId = new Types.ObjectId();
+//     const userId = new Types.ObjectId();
+
+//     // session.startTransaction();
+
+//     await Directory.insertOne(
+//       {
+//         _id: rootDirId,
+//         name: `root-${email}`,
+//         parentDirId: null,
+//         userId,
+//       }
+//       // { session }
+//     );
+//     await sendOtp(email);
+//     await User.insertOne(
+//       {
+//         _id: userId,
+//         name,
+//         email,
+//         password: hashedPassword,
+//         rootDirId,
+//       }
+//       // { session }
+//     );
+
+//     // session.commitTransaction();
+
+//     res.status(200).json({
+//       sucess: true,
+//       message: "otp send on your mail",
+//     });
+//   } catch (err) {
+//     // session.abortTransaction();
+//     if (err.code === 121) {
+//       res
+//         .status(400)
+//         .json({ error: "Invalid input, please enter valid details" });
+//     } else if (err.code === 11000) {
+//       if (err.keyValue.email) {
+//         return res.status(409).json({
+//           error: "This email already exists",
+//           message:
+//             "A user with this email address already exists. Please try logging in or use a different email.",
+//         });
+//       }
+//     } else {
+//       next(err);
+//     }
+//   }
+// };
+
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  // const session = await mongoose.startSession();
 
-  // const salt = crypto.randomBytes(16);
-  // const hashedPassword = crypto.pbkdf2Sync(
-  //   password,
-  //   salt,
-  //   100000,
-  //   32,
-  //   "sha256"
-  // );
-
-  //withou bcrypt hash our password
-  // const hashedPassword = crypto
-  //   .createHash("sha256")
-  //   .update(password)
-  //   .digest("hex");
   try {
-    const rootDirId = new Types.ObjectId();
+    // 1️⃣ Check existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({
+        error: "Email already exists",
+      });
+    }
+
+    // 2️⃣ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const userId = new Types.ObjectId();
+    const rootDirId = new Types.ObjectId();
 
-    // session.startTransaction();
+    // 3️⃣ Create user (not verified)
+    await User.insertOne({
+      _id: userId,
+      name,
+      email,
+      password: hashedPassword,
+      rootDirId,
+      isVerified: false,
+    });
 
-    await Directory.insertOne(
-      {
-        _id: rootDirId,
-        name: `root-${email}`,
-        parentDirId: null,
-        userId,
-      }
-      // { session }
-    );
-    await sendOtp(email);
-    await User.insertOne(
-      {
-        _id: userId,
-        name,
-        email,
-        password: hashedPassword,
-        rootDirId,
-      }
-      // { session }
-    );
+    // 4️⃣ Create root directory
+    await Directory.insertOne({
+      _id: rootDirId,
+      name: `root-${email}`,
+      parentDirId: null,
+      userId,
+    });
 
-    // session.commitTransaction();
+    // 5️⃣ Generate & save OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    await Otp.insertOne({
+      userId,
+      otp: await bcrypt.hash(otp.toString(), 10),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+    });
+
+    // 6️⃣ Send OTP (Resend)
+    await sendOtp(email, otp);
 
     res.status(200).json({
-      sucess: true,
-      message: "otp send on your mail",
+      success: true,
+      message: "OTP sent to your email",
     });
   } catch (err) {
-    // session.abortTransaction();
-    if (err.code === 121) {
-      res
-        .status(400)
-        .json({ error: "Invalid input, please enter valid details" });
-    } else if (err.code === 11000) {
-      if (err.keyValue.email) {
-        return res.status(409).json({
-          error: "This email already exists",
-          message:
-            "A user with this email address already exists. Please try logging in or use a different email.",
-        });
-      }
-    } else {
-      next(err);
-    }
+    next(err);
   }
 };
 
