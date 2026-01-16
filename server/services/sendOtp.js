@@ -1,5 +1,4 @@
 import Otp from "../models/otpModel.js";
-import nodemailer from "nodemailer";
 
 // EMAIL_USER=
 // EMAIL_PASS=jnrb mmff wmdy kwmn
@@ -10,15 +9,20 @@ import nodemailer from "nodemailer";
 //     pass: "jnrb mmff wmdy kwmn",
 //   },
 // });
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.gmail.com",
+//   port: 587,
+//   secure: true,
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export async function sendOtp(email) {
   try {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -28,18 +32,24 @@ export async function sendOtp(email) {
       { otp, createdAt: new Date() },
       { upsert: true, new: true }
     );
-
-    await transporter.sendMail({
-      from: `Verfiy email <viku81021@gmail.com>`,
+    await resend.emails.send({
+      from: "Your App <onboarding@resend.dev>",
       to: email,
-      subject: "Your OTP for Email Verification",
-      html: `
-        <h2>Email Verification</h2>
-        <p>Your OTP is:</p>
-        <h1>${otp}</h1>
-        <p>This OTP is valid for 5 minutes.</p>
-      `,
+      subject: "Your OTP",
+      html: `<h2>Your OTP is ${otp}</h2>`,
     });
+
+    // await transporter.sendMail({
+    //   from: `Verfiy email <viku81021@gmail.com>`,
+    //   to: email,
+    //   subject: "Your OTP for Email Verification",
+    //   html: `
+    //     <h2>Email Verification</h2>
+    //     <p>Your OTP is:</p>
+    //     <h1>${otp}</h1>
+    //     <p>This OTP is valid for 5 minutes.</p>
+    //   `,
+    // });
     return true;
   } catch (error) {
     console.error("OTP send error:", error);
