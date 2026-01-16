@@ -234,26 +234,39 @@ export const sendotp = async (req, res) => {
 export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    if (!otp) {
-      return res.json({ message: "Missing fields are required" });
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
     }
-    const findOtp = await Otp.findById(otp);
-    if (!findOtp) {
-      return res.json({ message: "Invalid Otp" });
+
+    const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Invalid OTP" });
     }
+
     const now = new Date();
-    if (findOtp.createdAt.getTime() + 10 * 60 * 1000 < now.getTime()) {
+    if (otpRecord.expiresAt < now) {
+      await Otp.deleteOne({ email });
       return res.status(400).json({ message: "OTP expired" });
     }
+
+    // Compare plain text
+    if (otpRecord.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     user.isVerified = true;
     await user.save();
-    await Otp.deleteOne({ otp: otp });
-    res.status(200).json({ message: "Email verified successfully" });
+
+    await Otp.deleteOne({ email });
+
+    return res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    console.error("OTP verify error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
