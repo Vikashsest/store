@@ -57,7 +57,10 @@ export const register = async (req, res, next) => {
 
     // session.commitTransaction();
 
-    res.status(201).json({ message: "User Registered" });
+    res.status(200).json({
+      sucess: true,
+      message: "otp send on your mail",
+    });
   } catch (err) {
     // session.abortTransaction();
     if (err.code === 121) {
