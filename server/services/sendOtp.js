@@ -35,7 +35,7 @@ export async function sendOtp(email) {
     await resend.emails.send({
       from: "Your App <onboarding@resend.dev>",
       to: email,
-      subject: "Your OTP",
+      subject: "Your OTP for Email Verification",
       html: `<h2>Your OTP is ${otp}</h2>`,
     });
 
