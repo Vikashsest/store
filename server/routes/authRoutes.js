@@ -15,9 +15,10 @@ router.post("/register", register);
 
 router.post("/login", login);
 
-router.get("/", checkAuth, getCurrentUser);
+router.get("/currentUser", checkAuth, getCurrentUser);
 
 router.post("/logout", logout);
 router.post("/verifyOtp", verifyOtp);
+
 // router.post("/send-otp", sendOtp);
 export default router;
