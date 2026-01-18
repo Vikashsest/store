@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+
+dotenv.config();
 import Otp from "../models/otpModel.js";
 
 // EMAIL_USER=
@@ -21,6 +24,7 @@ import Otp from "../models/otpModel.js";
 // });
 
 import { Resend } from "resend";
+console.log("proces", process.env.RESEND_API_KEY);
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,7 +35,7 @@ export async function sendOtp(email) {
     await Otp.findOneAndUpdate(
       { email },
       { otp, createdAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
     await resend.emails.send({
       from: "Your App <onboarding@resend.dev>",

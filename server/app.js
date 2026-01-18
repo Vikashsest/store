@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,9 +17,13 @@ app.use(cookieParser("mystoredrive"));
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://storedrive.vercel.app", "http://localhost:3000"],
+    origin: [
+      "https://storedrive.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ],
     credentials: true,
-  })
+  }),
 );
 
 app.use("/directory", checkAuth, directoryRoutes);
@@ -28,6 +35,8 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ error: "Something went wrong!" });
 });
 
-app.listen(4000, "0.0.0.0", () => {
+const port = process.env.PORT;
+
+app.listen(port, "0.0.0.0", () => {
   console.log(`Server Started`);
 });

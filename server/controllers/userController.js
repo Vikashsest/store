@@ -111,7 +111,6 @@ export const register = async (req, res, next) => {
       isVerified: false,
     });
 
-    // 4️⃣ Send OTP
     await sendOtp(email);
 
     res.status(200).json({ success: true, message: "OTP sent to your email" });
@@ -119,70 +118,111 @@ export const register = async (req, res, next) => {
     next(err);
   }
 };
+export const login = async (req, res) => {
+  const { email, password } = req.body;
 
-export const login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: "Invalid Credentials" });
-    }
-
-    // const [salt, savedPassword] = user.password.split(".");
-    //without bcrypt compare our password
-    // const newEnterdPassword = crypto
-    //   .createHash("sha256")
-    //   .update(password)
-    //   .digest("hex");
-    // const newEnterdPassword = crypto
-    //   .pbkdf2Sync(password, Buffer.from(salt, "base64url"), 100000, 32, "sha256")
-    //   .toString("base64url");
-    // console.log(newEnterdPassword);
-    // console.log(savedPassword);
-
-    //todo
-    // const isValidPassword = await bcrypt.compare(password, user.password);
-    // if (!isValidPassword) {
-    //   return res.status(404).json({ error: "Invalid password" });
-    // }
-
-    //sesion in db store
-    // const allSesions = await Sesion.find({ userId: user.id });
-
-    // if (allSesions.length >= 2) {
-    //   await allSesions[0].deleteOne();
-    // }
-    // const userSesion = await Sesion.create({
-    //   userId: user._id,
-    // });
-
-    // const signature = crypto
-    //   .createHash("sha256")
-    //   .update(mySecretKey)
-    //   .update(cookiePayload)
-    //   .update(mySecretKey)
-    //   .digest("base64url");
-    // const signedCookie = `${Buffer.from(cookiePayload).toString("base64url")}.${signature}`;
-    //session store on redis
-    const sesionID = crypto.randomUUID();
-    const redisKey = `session:${sesionID}`;
-    await redisClient.json.set(redisKey, "$", {
-      userId: user._id,
-      rootDirId: user.rootDirId,
-    });
-    const sesionExpiry = 60 * 1000 * 60 * 24 * 7;
-    await redisClient.expire(redisKey, sesionExpiry / 1000);
-    res.cookie("sid", sesionID, {
-      httpOnly: true,
-      // maxAge: 10 * 1000,
-      signed: true,
-      maxAge: sesionExpiry,
-    });
-    res.json({ message: "logged in" });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(401).json({ error: "Invalid credentials" });
   }
+
+  // const isValid = await bcrypt.compare(password, user.password);
+  // if (!isValid) {
+  //   return res.status(401).json({ error: "Invalid credentials" });
+  // }
+
+  const sessionId = crypto.randomUUID();
+  const key = `session:${sessionId}`;
+
+  // await redisClient.json.set(key, "$", {
+  //   userId: user._id.toString(),
+  //   rootDirId: user.rootDirId,
+  // });
+  await redisClient.hSet(key, {
+    userId: user._id.toString(),
+    rootDirId: user.rootDirId.toString(),
+  });
+  await redisClient.expire(key, 60 * 60 * 24 * 7);
+
+  res.cookie("sid", sessionId, {
+    httpOnly: true,
+    signed: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: "lax",
+  });
+
+  res.json({ message: "logged in" });
 };
+
+// export const login = async (req, res, next) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ error: "Invalid Credentials" });
+//     }
+//     console.log("user", user);
+
+//     // const [salt, savedPassword] = user.password.split(".");
+//     //without bcrypt compare our password
+//     // const newEnterdPassword = crypto
+//     //   .createHash("sha256")
+//     //   .update(password)
+//     //   .digest("hex");
+//     // const newEnterdPassword = crypto
+//     //   .pbkdf2Sync(password, Buffer.from(salt, "base64url"), 100000, 32, "sha256")
+//     //   .toString("base64url");
+//     // console.log(newEnterdPassword);
+//     // console.log(savedPassword);
+
+//     //todo
+//     // const isValidPassword = await bcrypt.compare(password, user.password);
+//     // if (!isValidPassword) {
+//     //   return res.status(404).json({ error: "Invalid password" });
+//     // }
+
+//     //sesion in db store
+//     // const allSesions = await Sesion.find({ userId: user.id });
+
+//     // if (allSesions.length >= 2) {
+//     //   await allSesions[0].deleteOne();
+//     // }
+//     // const userSesion = await Sesion.create({
+//     //   userId: user._id,
+//     // });
+
+//     // const signature = crypto
+//     //   .createHash("sha256")
+//     //   .update(mySecretKey)
+//     //   .update(cookiePayload)
+//     //   .update(mySecretKey)
+//     //   .digest("base64url");
+//     // const signedCookie = `${Buffer.from(cookiePayload).toString("base64url")}.${signature}`;
+//     //session store on redis
+//     const sesionID = crypto.randomUUID();
+
+//     const redisKey = `session:${sesionID}`;
+
+//     const val = await redisClient.json.set(redisKey, "$", {
+//       userId: user._id,
+//       rootDirId: user.rootDirId,
+//     });
+//     console.log("value", val);
+
+//     const sesionExpiry = 60 * 1000 * 60 * 24 * 7;
+//     await redisClient.expire(redisKey, sesionExpiry / 1000);
+//     res.cookie("sid", sesionID, {
+//       httpOnly: true,
+//       // maxAge: 10 * 1000,
+//       signed: true,
+//       maxAge: sesionExpiry,
+//     });
+//     res.json({ message: "logged in" });
+//   } catch (error) {
+//     return res.status(500).json({ message: error.message });
+//   }
+// };
 export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).lean();
