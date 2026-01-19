@@ -151,7 +151,10 @@ export const login = async (req, res) => {
     sameSite: "lax",
   });
 
-  res.json({ message: "logged in" });
+  res.status(200).json({
+    success: true,
+    message: "logged in",
+  });
 };
 
 // export const login = async (req, res, next) => {
