@@ -1,20 +1,20 @@
-# Step 1: Node base image
+# Base Node image
 FROM node:20-alpine
 
-# Step 2: Set working directory
+# Working directory
 WORKDIR /usr/src/app
 
-# Step 3: Copy package.json and package-lock.json
+# Copy package.json & package-lock.json first
 COPY package*.json ./
 
-# Step 4: Install dependencies
-RUN npm install --production
+# Install dependencies
+RUN npm install
 
-# Step 5: Copy all server files
+# Copy all backend source files
 COPY . .
 
-# Step 6: Expose backend port
+# Expose backend port
 EXPOSE 3000
 
-# Step 7: Start backend
+# Start backend (use nodemon if dev)
 CMD ["node", "app.js"]
