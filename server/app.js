@@ -26,8 +26,10 @@ app.use(
   }),
 );
 
-app.use("/directory", checkAuth, directoryRoutes);
-app.use("/file", checkAuth, fileRoutes);
+// app.use("/directory", checkAuth, directoryRoutes);
+app.use("/directory", directoryRoutes);
+// app.use("/file", checkAuth, fileRoutes);
+app.use("/file", fileRoutes);
 app.use("/auth", authRoutes);
 
 app.use((err, req, res, next) => {
