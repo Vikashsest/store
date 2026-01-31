@@ -5,6 +5,8 @@ import Directory from "../models/directoryModel.js";
 import File from "../models/fileModel.js";
 
 export const uploadFile = async (req, res, next) => {
+  console.log(req.user.rootDirId);
+
   const parentDirId = req.params.parentDirId || req.user.rootDirId;
   if (!parentDirId) {
     return res.status(401).json({ message: "directory not found" });
