@@ -26,8 +26,8 @@ app.use(
   }),
 );
 
-// app.use("/directory", checkAuth, directoryRoutes);
-app.use("/directory", directoryRoutes);
+app.use("/directory", checkAuth, directoryRoutes);
+app.use("/directory", checkAuth, directoryRoutes);
 // app.use("/file", checkAuth, fileRoutes);
 app.use("/file", fileRoutes);
 app.use("/auth", authRoutes);
