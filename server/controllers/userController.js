@@ -144,14 +144,20 @@ export const login = async (req, res) => {
     rootDirId: user.rootDirId.toString(),
   });
   const clientRedis = await redisClient.expire(key, 60 * 60 * 24 * 7);
-  console.log("redis-client", clientRedis);
-
   res.cookie("sid", sessionId, {
     httpOnly: true,
     signed: true,
     maxAge: 1000 * 60 * 60 * 24 * 7,
     sameSite: "none",
+    secure: true, // 👈 REQUIRED
   });
+
+  // res.cookie("sid", sessionId, {
+  //   httpOnly: true,
+  //   signed: true,
+  //   maxAge: 1000 * 60 * 60 * 24 * 7,
+  //   sameSite: "none",
+  // });
 
   res.status(200).json({
     success: true,
