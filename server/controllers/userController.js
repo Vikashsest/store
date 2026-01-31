@@ -133,6 +133,7 @@ export const login = async (req, res) => {
 
   const sessionId = crypto.randomUUID();
   const key = `session:${sessionId}`;
+  console.log("sesio id", sessionId);
 
   // await redisClient.json.set(key, "$", {
   //   userId: user._id.toString(),
@@ -142,7 +143,8 @@ export const login = async (req, res) => {
     userId: user._id.toString(),
     rootDirId: user.rootDirId.toString(),
   });
-  await redisClient.expire(key, 60 * 60 * 24 * 7);
+  const clientRedis = await redisClient.expire(key, 60 * 60 * 24 * 7);
+  console.log("redis-client", clientRedis);
 
   res.cookie("sid", sessionId, {
     httpOnly: true,
